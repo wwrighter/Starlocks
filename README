@@ -1,0 +1,38 @@
+/* ----------------------------------------------------------- */
+ * @starlocks
+ * @author: William Wright
+ * @email : williamfzwright@outlook.com
+ * @date  : 12/1/2014
+ */
+/* ----------------------------------------------------------- */
+
+1.0 - Installing and running starlocks
+1.1 - Directory hiearchy (files / etc)
+
+
+1.0 Installing and running starlocks
+
+number of threads is representative of the number of customers whom
+will be purchasing coffee from starlocks.  
+
+$ make 
+$ ./starlocks -t <number of threads>
+
+
+1.1 Directory Hiearchy
+
+Makefile
+README
+- src
+-- customer.c
+-- selfserve.c
+-- barista.c
+-- queue.c
+- include
+-- customer.h
+-- selfserve.h
+-- barista.h
+-- queue.h
+- plots
+-- gnuplots
+- logs
