@@ -6,21 +6,23 @@
 #include "queue.h"
 #include "customer.h"
 
-void add_coffeepot(void);
-void init_selfserve(void);
-void pour_coffee(void);
+struct coffee_station {
+	struct coffeepot	*pot;
+	int num_pots;
+	int num_customers;
+	pthread_cond_t		available;
+	pthread_mutex_t		mutex;		
+};
 
 struct coffeepot {
-	struct coffeepot *next;
-	/* Individual coffeepot lock */
-	pthread_mutex_t mutex;
+	struct coffeepot	*next;		 /* next coffeepot */
+	bool				occupied;	 
+	pthread_mutex_t		mutex;		 /* lock per pot */	
 };
 
-struct coffee_station {
-	struct coffeepot *pot;
-	sem_t available;
-	/* TODO: Implement functionality to modify number of available coffeepots */
-	pthread_mutex_t mutex;
-};
+
+void add_coffeepot(struct coffee_station* station);
+void init_selfserve(int num_pots);
+int full_selfserve();
 
 #endif

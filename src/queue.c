@@ -7,6 +7,7 @@
  *		Queue (lineup) functionality with thread safe concurrent access
  */
 /* ----------------------------------------------------------------------------*/
+#include "../include/selfserve.h"
 #include "../include/queue.h"
 #include "../include/starlocks.h"
 #include "../include/customer.h"
@@ -34,8 +35,13 @@ bool enqueue_customer (struct queue* line, struct customer* new_customer)
 		if(full_queue(line))
 			pthread_cond_wait (&line->queue_not_full, &line->mutex);
 
-		if(line->end == NULL) 
+		new_customer->next = NULL;
+
+		/* first customer in line */
+		if(line->end == NULL) {
 			line->front = new_customer;
+			new_customer->info->f_pos = true;
+		}
 		else 
 			line->end->next = new_customer;
 
@@ -53,10 +59,6 @@ bool enqueue_customer (struct queue* line, struct customer* new_customer)
 		 * is not full, though it is occupied.
 		 */
 		pthread_cond_signal (&line->queue_occupied);
-
-#ifdef DEBUG_QUEUE
-		printf("successfully enqueued thread.\n");
-#endif
 
 		return true;
 }
@@ -79,27 +81,31 @@ bool enqueue_customer (struct queue* line, struct customer* new_customer)
 /* ----------------------------------------------------------------------------*/
 struct customer* dequeue_customer (struct queue* line) 
 {
-	struct customer* d_customer;
+	struct customer* d_customer = NULL;
 		
 		/* pthread_mutex_lock will not return until mutex is available */
 		pthread_mutex_lock (&line->mutex);
 
+		if(empty_queue(line)) 
+			pthread_cond_wait (&line->queue_occupied, &line->mutex);
+
 		d_customer = line->front;
-		line->front = d_customer->next;
-
-		/* release lock and block, waiting for new customers */
-		if(empty_queue(line)) { 
-			line->end = NULL;
-			pthread_cond_wait(&line->queue_occupied, &line->mutex);
+		
+		if(d_customer->next != NULL) {
+			d_customer->next->info->f_pos = true;
 		}
+		else
+			line->end = NULL;
+		
+		line->front = d_customer->next;
+		d_customer->info->f_pos = 0;
 
-		if(d_customer != NULL)
-			line->num_customers = line->num_customers - 1;
+		line->num_customers = line->num_customers - 1;
 
-		pthread_mutex_lock (&line->mutex);
+		pthread_mutex_unlock (&line->mutex);
 		pthread_cond_signal (&line->queue_not_full);
 
-	return d_customer;
+		return d_customer;
 }
 
 
@@ -116,13 +122,19 @@ struct customer* dequeue_customer (struct queue* line)
  *		size of queue
 */
 /* ----------------------------------------------------------------------------*/
-void init_queue(struct queue *q, unsigned long q_size) 
+void init_queue(struct queue *q, unsigned long q_size, char* q_title) 
 {
-//	sem_init (&q->num_customers, 0, 0);
 	q->num_customers = 0;
 	q->size = q_size;
 	q->front = NULL;
 	q->end = NULL;
+
+	/* setup the line name - merely a convenience implementation */
+	if ((strlen(q_title) + 1) > MAX_TITLE)
+		q_title = "default";
+	strcpy(q->title, q_title);
+
+	/* setup conditions and lock for the queue */
 	pthread_cond_init(&q->queue_not_full, NULL);
 	pthread_cond_init(&q->queue_occupied, NULL);
 	pthread_mutex_init(&q->mutex, NULL);
@@ -170,3 +182,4 @@ bool full_queue(struct queue *q)
 	else
 		return 0;
 }
+

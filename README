@@ -1,10 +1,14 @@
-/* ----------------------------------------------------------- */
+/* ----------------------------------------------------------- 
  * @starlocks
  * @author: William Wright
  * @email : williamfzwright@outlook.com
  * @date  : 12/1/2014
- */
-/* ----------------------------------------------------------- */
+ ----------------------------------------------------------- */
+
+--- NON Aggressive (Customer Queues) can be enabled by uncommenting
+	the "#define NONAGGRO" in starlocks.h 
+
+-------------------------------------------------------------------
 
 1.0 - Installing and running starlocks
 1.1 - Directory hiearchy (files / etc)
@@ -16,7 +20,15 @@ number of threads is representative of the number of customers whom
 will be purchasing coffee from starlocks.  
 
 $ make 
-$ ./starlocks -t <number of threads>
+$ ./starlocks -t <number of threads> -l <trial#>
+
+example:
+$ ./starlocks -t 100 -l 1
+
+
+$ ls logs/*
+	100.1-complex.dat
+	100.1-simple.dat
 
 
 1.1 Directory Hiearchy
@@ -36,3 +48,9 @@ README
 - plots
 -- gnuplots
 - logs
+--#ofcustomers.trial#-<simple/complex>.dat
+(xx is representative of AGGRO oriented log / data files - as specified at runtime)
+
+	Thus, 10000.11-complex.dat would represent a single run with 10000 customers, using AGGRESIVE 
+	customer styles (run 1), run 2 would be represented by 12 in place of 11.
+
